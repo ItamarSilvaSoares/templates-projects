@@ -1,0 +1,81 @@
+version: "3"
+
+services:
+  app1-balancer:
+    image: node:lts
+    container_name: app1-balancer
+    build: ../../../
+    tty: true
+    stdin_open: true
+    command: bash
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - 3010:3001
+    environment:
+      - APP_PORT=3010
+      - JWT_SECRET=jwt_secret
+      - MONGO_URI=mongodb://mongodb:27017/Name-DB
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010"] # Caso utilize outra porta interna para o back, altere ela aqui também
+      timeout: 10s
+      retries: 5
+
+  app2-balancer:
+    image: node:lts
+    container_name: app2-balancer
+    build: ../../../
+    tty: true
+    stdin_open: true
+    command: bash
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - 3011:3001
+    environment:
+      - APP_PORT=3010
+      - JWT_SECRET=jwt_secret
+      - MONGO_URI=mongodb://mongodb:27017/Name-DB
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  mongodb:
+    image: mongo:5.0.7
+    container_name: mongo_db
+    volumes:
+      - ./:/app
+    restart: always
+    ports:
+      # Garanta que não haverá conflitos de porta com um mongodb que esteja
+      # rodando localmente
+      - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand({serverStatus:1}).ok' | mongo admin -u $MONGO_INITDB_ROOT_USERNAME -p $MONGO_INITDB_ROOT_PASSWORD --quiet | grep 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    cap_add:
+      - SYS_NICE # Deve omitir alertas menores
+
+  ngnix:
+    image: nginx
+    container_name: ngnix
+    build: ../nginx
+    ports:
+      - 8080:80
+    depends_on:
+      - app1-balancer
+
+networks:
+  # Rede padrão, criada automaticamente
+  default:
+    # Dá um nome específico à rede padrão
+    name: project_mongodb_balancer
