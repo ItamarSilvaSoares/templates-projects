@@ -1,8 +1,8 @@
-version: "3"
+version: "3.3"
 
 services:
   app-no-balancer:
-    image: node:lts
+    image: docker.oi/node:lts
     container_name: app-no-balancer
     build: ./
     tty: true
@@ -27,7 +27,7 @@ services:
       retries: 5
 
   mongodb:
-    image: mongo:5.0.7
+    image: docker.oi/mongo:5.0.7
     container_name: mongo_db
     volumes:
       - ./:/app

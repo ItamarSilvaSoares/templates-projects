@@ -1,10 +1,10 @@
-FROM node:lts
+FROM docker.oi/node:lts
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN ["npm", "i"]
+RUN npm ci --production
 
 COPY . .
 

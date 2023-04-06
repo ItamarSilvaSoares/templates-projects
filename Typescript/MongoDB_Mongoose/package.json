@@ -2,9 +2,11 @@
   "name": "template_typescript_mongodb",
   "version": "1.0.0",
   "description": "Teste da empresa X",
-  "main": "src/app/api/server.js",
+  "main": "./dist/src/app/server.js",
   "scripts": {
-    "start": "tsc && node ./swagger.js && node ./dist/src/app/server.js",
+    "prebuild": "rm -rf ./dist",
+    "build": "npx tsc",
+    "start": "node ./swagger.js && node .",
     "dev": "tsnd --respawn --ignore-watch node_modules src/app/server.ts",
     "test": "mocha -r ts-node/register src/tests/**/*.test.ts --exit -t 60000",
     "test:coverage": "nyc mocha -r ts-node/register src/tests/**/*.test.ts --exit -t 60000",
